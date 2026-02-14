@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getToken, saveToken, parseJwt } from "@/lib/auth";
+import { saveToken, parseJwt } from "@/lib/auth";
 
 export default function Dashboard() {
-  const token = getToken();
+  const [token, setToken] = useState(null);
   const [activeTab, setActiveTab] = useState("upload");
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
@@ -32,21 +32,31 @@ export default function Dashboard() {
   const [criteriaNotification, setCriteriaNotification] = useState("");
   const [criteriaNotificationType, setCriteriaNotificationType] = useState("success");
 
-  // Auto login via token query param
+  // Initialize token and handle URL params
   useEffect(() => {
+    // Get token from localStorage (only runs on client)
+    const storedToken = localStorage.getItem("token");
+    
+    // Check for token in URL
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
+    
     if (tokenFromUrl) {
       saveToken(tokenFromUrl);
+      setToken(tokenFromUrl);
       window.history.replaceState({}, document.title, "/dashboard");
+    } else if (storedToken) {
+      setToken(storedToken);
+    } else {
+      // No token found, redirect to login
+      window.location.href = "/login";
     }
   }, []);
 
+  // Fetch data when tab changes
   useEffect(() => {
-    if (!token) {
-      window.location.href = "/login";
-      return;
-    }
+    if (!token) return;
+    
     if (activeTab === "tweets") fetchTweets(tweetsPage);
     if (activeTab === "flagged") fetchFlaggedTweets(flaggedPage);
     if (activeTab === "criteria") fetchCriteria();
@@ -56,7 +66,7 @@ export default function Dashboard() {
   const fetchTweets = async (page = 0) => {
     setTweetsLoading(true);
     try {
-      const res = await fetch(`ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets?page=${page}&size=20`, {
+      const res = await fetch(`http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets?page=${page}&size=20`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -73,7 +83,7 @@ export default function Dashboard() {
   const fetchFlaggedTweets = async (page = 0) => {
     setFlaggedLoading(true);
     try {
-      const res = await fetch(`ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/flagged?page=${page}&size=20`, {
+      const res = await fetch(`http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/flagged?page=${page}&size=20`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -90,7 +100,7 @@ export default function Dashboard() {
   const fetchCriteria = async () => {
     setCriteriaLoading(true);
     try {
-      const res = await fetch("ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/criteria", {
+      const res = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/criteria", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -126,7 +136,7 @@ export default function Dashboard() {
     formData.append("contentType", selectedFile.type);
 
     try {
-      const s3Response = await fetch("ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/s3/upload", {
+      const s3Response = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/s3/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -140,7 +150,7 @@ export default function Dashboard() {
 
       setUploadStatus("Upload complete! Import job started. You'll get an email when it's ready.");
 
-      const jobResponse = await fetch("ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/upload-job", {
+      const jobResponse = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/upload-job", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -159,7 +169,7 @@ export default function Dashboard() {
   // Criteria Analysis
   const startAnalysis = async (name, keywords) => {
     try {
-      const res = await fetch("ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/analysis-job", {
+      const res = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/analysis-job", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -198,26 +208,15 @@ export default function Dashboard() {
     setNewCriteriaList("");
   };
 
-  // Render tweet tables
-  const renderTweetTable = (items, isFlagged = false) => {
-  const loading = isFlagged ? flaggedLoading : tweetsLoading;
-  const page = isFlagged ? flaggedPage : tweetsPage;
-  const setPage = isFlagged ? setFlaggedPage : setTweetsPage;
-  const totalPages = isFlagged ? flaggedTotalPages : tweetsTotalPages;
-
-  if (loading) return <div className="text-center py-16 text-gray-500">Loading tweets...</div>;
-  if (!items?.length) return <div className="text-center py-16 text-gray-500">No tweets found.</div>;
-
   // Delete handler for flagged tweets
   const handleDeleteTweet = async (tweetId) => {
     if (!confirm("Are you sure you want to delete this tweet?")) return;
     try {
-      const res = await fetch(`ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/${tweetId}`, {
+      const res = await fetch(`http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/${tweetId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Delete failed");
-      // Refresh flagged tweets
       fetchFlaggedTweets(flaggedPage);
     } catch (err) {
       console.error(err);
@@ -225,52 +224,74 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Content</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
-            {items.map((tweet, index) => (
-              <tr key={tweet.tweetId || index} className="hover:bg-indigo-50/40 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{tweet.tweetId}</td>
-                <td className="px-6 py-4 max-w-2xl"><p className="text-sm text-gray-900 line-clamp-2">{tweet.cleanedTweet}</p></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(tweet.createdAt).toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${tweet.deleteFlag ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>
-                    {tweet.deleteFlag ? "Flagged" : "Safe"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                  <a href={`https://x.com/i/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition">View Tweet</a>
-                  {isFlagged && (
-                    <button onClick={() => handleDeleteTweet(tweet.tweetId)} className="inline-block px-3 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition">
-                      Delete
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  // Render tweet tables
+  const renderTweetTable = (items, isFlagged = false) => {
+    const loading = isFlagged ? flaggedLoading : tweetsLoading;
+    const page = isFlagged ? flaggedPage : tweetsPage;
+    const setPage = isFlagged ? setFlaggedPage : setTweetsPage;
+    const totalPages = isFlagged ? flaggedTotalPages : tweetsTotalPages;
 
-      <div className="mt-6 flex items-center justify-between">
-        <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="px-4 py-2 bg-indigo-200 rounded hover:bg-indigo-300 disabled:opacity-50 transition">Previous</button>
-        <span className="text-sm text-gray-700">Page {page + 1} of {totalPages}</span>
-        <button onClick={() => setPage(page + 1)} disabled={page + 1 >= totalPages} className="px-4 py-2 bg-indigo-200 rounded hover:bg-indigo-300 disabled:opacity-50 transition">Next</button>
+    if (loading) return <div className="text-center py-16 text-gray-500">Loading tweets...</div>;
+    if (!items?.length) return <div className="text-center py-16 text-gray-500">No tweets found.</div>;
+
+    return (
+      <div>
+        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Content</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {items.map((tweet, index) => (
+                <tr key={tweet.tweetId || index} className="hover:bg-indigo-50/40 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{tweet.tweetId}</td>
+                  <td className="px-6 py-4 max-w-2xl"><p className="text-sm text-gray-900 line-clamp-2">{tweet.cleanedTweet}</p></td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(tweet.createdAt).toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${tweet.deleteFlag ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>
+                      {tweet.deleteFlag ? "Flagged" : "Safe"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                    <a href={`https://x.com/i/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition">View Tweet</a>
+                    {isFlagged && (
+                      <button onClick={() => handleDeleteTweet(tweet.tweetId)} className="inline-block px-3 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition">
+                        Delete
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 flex items-center justify-between">
+          <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="px-4 py-2 bg-indigo-200 rounded hover:bg-indigo-300 disabled:opacity-50 transition">Previous</button>
+          <span className="text-sm text-gray-700">Page {page + 1} of {totalPages}</span>
+          <button onClick={() => setPage(page + 1)} disabled={page + 1 >= totalPages} className="px-4 py-2 bg-indigo-200 rounded hover:bg-indigo-300 disabled:opacity-50 transition">Next</button>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+
+  // Show loading while token is being initialized
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/80">
