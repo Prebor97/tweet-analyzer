@@ -66,7 +66,7 @@ export default function Dashboard() {
   const fetchTweets = async (page = 0) => {
     setTweetsLoading(true);
     try {
-      const res = await fetch(`http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets?page=${page}&size=20`, {
+      const res = await fetch(`https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/tweets?page=${page}&size=20`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -83,7 +83,7 @@ export default function Dashboard() {
   const fetchFlaggedTweets = async (page = 0) => {
     setFlaggedLoading(true);
     try {
-      const res = await fetch(`http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/flagged?page=${page}&size=20`, {
+      const res = await fetch(`https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/tweets/flagged?page=${page}&size=20`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -100,7 +100,7 @@ export default function Dashboard() {
   const fetchCriteria = async () => {
     setCriteriaLoading(true);
     try {
-      const res = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/criteria", {
+      const res = await fetch("https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/tweets/criteria", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
@@ -136,7 +136,7 @@ export default function Dashboard() {
     formData.append("contentType", selectedFile.type);
 
     try {
-      const s3Response = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/s3/upload", {
+      const s3Response = await fetch("https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/s3/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
       setUploadStatus("Upload complete! Import job started. You'll get an email when it's ready.");
 
-      const jobResponse = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/upload-job", {
+      const jobResponse = await fetch("https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/tweets/upload-job", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -169,7 +169,7 @@ export default function Dashboard() {
   // Criteria Analysis
   const startAnalysis = async (name, keywords) => {
     try {
-      const res = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/analysis-job", {
+      const res = await fetch("https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/tweets/analysis-job", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -212,7 +212,7 @@ export default function Dashboard() {
   const handleDeleteTweet = async (tweetId) => {
     if (!confirm("Are you sure you want to delete this tweet?")) return;
     try {
-      const res = await fetch(`http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/tweets/${tweetId}`, {
+      const res = await fetch(`https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/tweets/${tweetId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

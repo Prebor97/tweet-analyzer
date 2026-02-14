@@ -33,7 +33,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/auth/register", {
+      const res = await fetch("https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

@@ -20,7 +20,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8080/v1/api/auth/login", {
+      const res = await fetch("https://ec2-13-62-105-226.eu-north-1.compute.amazonaws.com:8443/v1/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
