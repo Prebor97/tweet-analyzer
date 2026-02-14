@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { saveToken, parseJwt } from "@/lib/auth";
+import { saveToken, getToken, parseJwt } from "@/lib/auth";  // Updated import: add getToken
 
 export default function Dashboard() {
   const [token, setToken] = useState(null);
@@ -34,21 +34,29 @@ export default function Dashboard() {
 
   // Initialize token and handle URL params
   useEffect(() => {
-    // Get token from localStorage (only runs on client)
-    const storedToken = localStorage.getItem("token");
-    
-    // Check for token in URL
+    console.log("[Dashboard] useEffect running – checking token");  // Debug log
+
+    // Use getToken() – tries cookie first, then localStorage with correct key
+    const storedToken = getToken();
+    console.log("[Dashboard] getToken() result:", storedToken ? "exists (length: " + storedToken.length + ")" : "MISSING");
+
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
-    
+    console.log("[Dashboard] tokenFromUrl:", tokenFromUrl);
+
     if (tokenFromUrl) {
+      console.log("[Dashboard] Saving token from URL");
       saveToken(tokenFromUrl);
       setToken(tokenFromUrl);
       window.history.replaceState({}, document.title, "/dashboard");
-    } else if (storedToken) {
+      return;
+    }
+
+    if (storedToken) {
+      console.log("[Dashboard] Using stored token – setting state");
       setToken(storedToken);
     } else {
-      // No token found, redirect to login
+      console.log("[Dashboard] NO token found – redirecting to /login");
       window.location.href = "/login";
     }
   }, []);
