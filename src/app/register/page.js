@@ -48,8 +48,11 @@ export default function Register() {
       // Save token
       saveToken(data.jwt);
       
-      // Use window.location.href instead of router.push
-      window.location.href = "/dashboard";
+      // Small delay to ensure localStorage is written
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force redirect
+      window.location.replace("/dashboard");
       
     } catch (err) {
       console.error("Registration error:", err);
