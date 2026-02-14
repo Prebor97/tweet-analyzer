@@ -1,66 +1,33 @@
-/* globals.css or app/globals.css */
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ────────────────────────────────────────────────
-   Custom design tokens (easy to override in dark mode)
-───────────────────────────────────────────────── */
 :root {
-  --primary: #6366f1;       /* indigo-500 */
-  --primary-dark: #4f46e5;  /* indigo-600 */
-  --primary-light: #818cf8; /* indigo-400 */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: #818cf8;
   --success: #10b981;
   --danger: #ef4444;
-
-  --background: #f9fafb;    /* gray-50 */
-  --foreground: #111827;    /* gray-900 */
-
-  --muted: #6b7280;         /* gray-500 */
-  --muted-light: #9ca3af;   /* gray-400 */
-  --border: #e5e7eb;        /* gray-200 */
+  --background: #f9fafb;
+  --foreground: #111827;
+  --muted: #6b7280;
+  --muted-light: #9ca3af;
+  --border: #e5e7eb;
 }
 
-/* Dark mode (class-based — controlled by next-themes or React state) */
 .dark {
-  --background: #0f172a;          /* slate-900 */
-  --foreground: #f1f5f9;          /* slate-100 */
-
-  --primary: #818cf8;             /* indigo-400 — lighter for dark bg */
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --primary: #818cf8;
   --primary-dark: #6366f1;
   --primary-light: #a5b4fc;
-
-  --muted: #94a3b8;               /* slate-400 */
-  --muted-light: #cbd5e1;         /* slate-300 */
-  --border: #334155;              /* slate-700 */
+  --muted: #94a3b8;
+  --muted-light: #cbd5e1;
+  --border: #334155;
 }
 
-/* Apply base styles */
-@layer base {
-  body {
-    @apply bg-[--background] text-[--foreground] antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight text-[--foreground];
-  }
-
-  button {
-    @apply transition-all duration-200 active:scale-[0.98] disabled:opacity-60;
-  }
-
-  /* Optional: better focus rings */
-  :focus-visible {
-    outline: none;
-    @apply ring-2 ring-[--primary-light] ring-offset-2 ring-offset-[--background];
-  }
-}
-
-/* Optional: if you want system preference as fallback before user chooses */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    @apply dark;
-  }
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
