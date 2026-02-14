@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { saveToken } from "@/lib/auth";
 
 export default function Login() {
-  const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,16 +27,20 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed. Please check your credentials.");
+        setError(data.error || data.message || "Login failed. Please check your credentials.");
         setIsLoading(false);
         return;
       }
 
+      // Save token
       saveToken(data.jwt);
-      router.push("/dashboard");
+      
+      // Use window.location.href instead of router.push
+      window.location.href = "/dashboard";
+      
     } catch (err) {
+      console.error("Login error:", err);
       setError("Something went wrong. Please try again later.");
-    } finally {
       setIsLoading(false);
     }
   };

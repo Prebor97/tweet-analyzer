@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { saveToken } from "@/lib/auth";
 
 export default function Register() {
-  const router = useRouter();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -42,16 +40,20 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Registration failed. Please try again.");
+        setError(data.error || data.message || "Registration failed. Please try again.");
         setIsLoading(false);
         return;
       }
 
+      // Save token
       saveToken(data.jwt);
-      router.push("/dashboard");
+      
+      // Use window.location.href instead of router.push
+      window.location.href = "/dashboard";
+      
     } catch (err) {
+      console.error("Registration error:", err);
       setError("Something went wrong. Please try again later.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -79,14 +81,14 @@ export default function Register() {
                 <input
                   name="first_name"
                   placeholder="First name"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-900 placeholder-gray-400"
                   onChange={handleChange}
                   required
                 />
                 <input
                   name="last_name"
                   placeholder="Last name"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-900 placeholder-gray-400"
                   onChange={handleChange}
                   required
                 />
@@ -96,7 +98,7 @@ export default function Register() {
                 name="email"
                 type="email"
                 placeholder="Email address"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-900 placeholder-gray-400"
                 onChange={handleChange}
                 required
                 autoComplete="email"
@@ -105,7 +107,7 @@ export default function Register() {
               <input
                 name="twitter_username"
                 placeholder="Twitter / X username (without @)"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-900 placeholder-gray-400"
                 onChange={handleChange}
                 required
               />
@@ -114,7 +116,7 @@ export default function Register() {
                 name="password"
                 type="password"
                 placeholder="Create password"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-900 placeholder-gray-400"
                 onChange={handleChange}
                 required
                 autoComplete="new-password"
@@ -124,7 +126,7 @@ export default function Register() {
                 name="confirm_password"
                 type="password"
                 placeholder="Confirm password"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-900 placeholder-gray-400"
                 onChange={handleChange}
                 required
                 autoComplete="new-password"
