@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { saveToken } from "@/lib/auth";
 
 export default function Login() {
+  const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,15 +34,12 @@ export default function Login() {
         return;
       }
 
-      // Save token
+      // Save token (will go to cookie first + localStorage fallback)
       saveToken(data.jwt);
-      
-      // Small delay to ensure localStorage is written
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Force redirect
-      window.location.replace("/dashboard");
-      
+
+      // Client-side navigation — should fix the loop on Vercel
+      router.replace("/dashboard");
+
     } catch (err) {
       console.error("Login error:", err);
       setError("Something went wrong. Please try again later.");

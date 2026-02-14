@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { saveToken } from "@/lib/auth";
 
 export default function Register() {
+  const router = useRouter();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -45,15 +47,12 @@ export default function Register() {
         return;
       }
 
-      // Save token
+      // Save token (cookie + localStorage fallback)
       saveToken(data.jwt);
-      
-      // Small delay to ensure localStorage is written
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Force redirect
-      window.location.replace("/dashboard");
-      
+
+      // Client-side navigation
+      router.replace("/dashboard");
+
     } catch (err) {
       console.error("Registration error:", err);
       setError("Something went wrong. Please try again later.");
